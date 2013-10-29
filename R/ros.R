@@ -26,8 +26,7 @@ ros <- function(x, d, na.rm = FALSE, ...) {
     return(x[FALSE][NA])
   }
     
-  p <- vector("numeric", length(x))
-  
+  p <- vector("numeric", length(x))  # Empty vector to store plotting positions
   pmdl <- max(x) + 1     # Previous mdl - starts with dummy value
   pp <- 0                # Previous probability of exceedence - dummy value
   
@@ -35,8 +34,6 @@ ros <- function(x, d, na.rm = FALSE, ...) {
   for(i in c(sort(unique(x[!d]), decreasing = TRUE), 0)) {
     
     # Calculate the probability of an exceedence at the current MDL
-    x2 <- x[x < pmdl]
-    d2 <- d[x < pmdl]
     mdl.prob <- sum(x >= i & x < pmdl & d)/length(x[x< pmdl]) * (1-pp) + pp
     
     # Fill in plotting positions for detected values greater than current MDL
@@ -44,6 +41,7 @@ ros <- function(x, d, na.rm = FALSE, ...) {
     p[xi] <- sapply(seq(sum(xi)), function(j) {
       (1 - pp) - (mdl.prob - pp) / (sum(xi) + 1) * j
     })
+    p[xi][order(x[xi], decreasing = TRUE)] <- p[xi]
     
     # Fill in plotting positions for non-detects equal to current MDL
     xi <- x == i & !d
@@ -56,7 +54,7 @@ ros <- function(x, d, na.rm = FALSE, ...) {
     pmdl <- i
     
   }
-    
+  
   gp <- gmle(x[d]) # Estimate gamma parameters
   
   qn <- qnorm(p)  # Get standard normal values
