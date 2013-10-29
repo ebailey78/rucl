@@ -55,7 +55,7 @@ ros <- function(x, d, na.rm = FALSE, ...) {
     
   }
   
-  gp <- gmle(x[d]) # Estimate gamma parameters
+  gp <- gmle(x[d], bias.correct=FALSE) # Estimate gamma parameters
   
   qn <- qnorm(p)  # Get standard normal values
   qg <- qgamma(p, shape = gp$shape, scale = gp$scale)  # Standard gamma values
