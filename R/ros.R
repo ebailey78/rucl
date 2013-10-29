@@ -12,7 +12,7 @@ d <- Oahu[, 2]
 #' @param \dots additional values to pass to/from other functions
 #' @return dataframe containing imputed datasets for normal, lognormal, and
 #' gamma assumptions
-#' @author Eric Bailey
+#' @author Eric Bailey and Nathan Byers
 
 ros <- function(x, d, na.rm = FALSE, ...) {
   
