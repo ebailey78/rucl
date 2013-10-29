@@ -54,7 +54,7 @@ gmle <- function(x, precision = 1e-5, bias.correct = TRUE, neg = "small", ...) {
     if(bias.correct) shape <- (n - 3) * k / n + 2 / (3 * n) # Bias correction (Eq. 2-30)
   }
   
-  scale = sum(x)/length(x)/k
+  scale = sum(x)/length(x)/shape
   
   list(shape = shape, scale = sum(x)/length(x)/k, rate = 1/scale)
   
