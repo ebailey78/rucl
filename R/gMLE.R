@@ -56,6 +56,6 @@ gmle <- function(x, precision = 1e-5, bias.correct = TRUE, neg = "small", ...) {
   
   scale = sum(x)/length(x)/shape
   
-  list(shape = shape, scale = sum(x)/length(x)/k, rate = 1/scale)
+  list(shape = shape, scale = scale, rate = 1/scale)
   
 }
