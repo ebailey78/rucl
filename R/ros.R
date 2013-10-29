@@ -25,40 +25,29 @@ ros <- function(x, d, na.rm = FALSE, ...) {
   } else if(any(is.na(x))) {
     return(x[FALSE][NA])
   }
-  
-  #Sort data in decreasing order
-  i <- order(x, decreasing = TRUE)
-  x <- x[i]
-  d <- d[i]
-  
-  # Detected Values
-  xd <- x[d]
-  # Empty vector to hold plotting positions for detected values
-  pd <- vector("numeric", length(xd))
-  # Non-detects
-  xnd <- x[!d]
-  # Empty vector to hold plotting positions for detected values
-  pnd <- vector("numeric", length(xnd))
+    
+  p <- vector("numeric", length(x))
   
   pmdl <- max(x) + 1     # Previous mdl - starts with dummy value
   pp <- 0                # Previous probability of exceedence - dummy value
   
   # Loop through unique MDLs
-  for(i in c(unique(xnd), 0)) {
+  for(i in c(sort(unique(x[!d]), decreasing = TRUE), 0)) {
     
     # Calculate the probability of an exceedence at the current MDL
-    x2 <- xd[xd < pmdl]
-    mdl.prob <- sum(x2 >= i)/length(x[x< pmdl]) * (1-pp) + pp
+    x2 <- x[x < pmdl]
+    d2 <- d[x < pmdl]
+    mdl.prob <- sum(x >= i & x < pmdl & d)/length(x[x< pmdl]) * (1-pp) + pp
     
     # Fill in plotting positions for detected values greater than current MDL
-    xi <- xd >= i & xd < pmdl
-    pd[xi] <- sapply(seq(sum(xi)), function(j) {
+    xi <- x >= i & x < pmdl & d
+    p[xi] <- sapply(seq(sum(xi)), function(j) {
       (1 - pp) - (mdl.prob - pp) / (sum(xi) + 1) * j
     })
     
     # Fill in plotting positions for non-detects equal to current MDL
-    xi <- xnd == i
-    pnd[xi] <- sapply(seq(sum(xi)), function(j) {
+    xi <- x == i & !d
+    p[xi] <- sapply(seq(sum(xi)), function(j) {
       (1 - mdl.prob) / (sum(xi) + 1) * j
     })
         
@@ -67,11 +56,27 @@ ros <- function(x, d, na.rm = FALSE, ...) {
     pmdl <- i
     
   }
+    
+  gp <- gmle(x[d]) # Estimate gamma parameters
   
-  val <- rbind(cbind(xd, rep(TRUE, length(xd)), pd), cbind(xnd, rep(FALSE, length(xnd)), pnd))
-  val <- val[order(val[, 1], val[, 3], decreasing = TRUE), ]
+  qn <- qnorm(p)  # Get standard normal values
+  qg <- qgamma(p, shape = gp$shape, scale = gp$scale)  # Standard gamma values
   
-  gp <- gmle(xd) # Estimate gamma parameters
+  fn <- coef(lm(x[d] ~ qn[d]))  # Fit a linear model (intercept = mean, slope = sd)
+  fl <- coef(lm(log(x[d]) ~ qn[d]))  # Fit a linear model (intercept = mean, slope = sd)
+  fg <- coef(lm(x[d] ~ qg[d]))  # Fit a linear model (intercept = mean, slope = sd)
   
+  pn <- x  # Create predicted values vectors (Normal)
+  pl <- x  # (Lognormal)
+  pg <- x  # (Gamma)
+  pn[!d] <- qn[!d] * fn[2] + fn[1]  # Replace NDs with predictions (Normal)
+  pl[!d] <- exp(qn[!d] * fl[2] + fl[1])  # (Lognormal)
+  pg[!d] <- qg[!d] * fg[2] + fg[1]       # (Gamma)
+  pg[pg <= 0] <- 1e-4
+  
+  # Create and return a dataframe of the results
+  o <- as.data.frame(cbind(x, d, pn, pl, pg))  # Return the data to the original scale
+  colnames(o) <- c("original", "detect", "norm", "ln", "gamma")
+  o
   
 }
