@@ -1,7 +1,3 @@
-load("C:/R/Packages/rucl - old/data/Oahu.rda")
-x <- Oahu[, 1]
-d <- Oahu[, 2]
-
 #' Regression on Order Statistics
 #' 
 #' Impute left-censored datapoints based on normal, lognormal, and gamma 
