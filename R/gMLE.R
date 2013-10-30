@@ -15,7 +15,14 @@
 #' @examples
 #' gmle(rgamma(100, shape = 2, scale = 3))
 
-gmle <- function(x, precision = 1e-5, bias.correct = TRUE, neg = "small", ...) {
+gmle <- function(x, precision = 1e-5, bias.correct = TRUE, na.rm = FALSE, 
+                 neg = "small", ...) {
+  
+  if(na.rm) {
+    x <- x[!is.na(x)]
+  } else if(any(is.na(x))) {
+    return(list(shape=NA, scale=NA, rate=NA))
+  }
   
   # Deals with datasets with 0 or negative values
   if(min(x) <= 0) {
