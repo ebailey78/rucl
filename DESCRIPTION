@@ -13,3 +13,4 @@ LinkingTo: Rcpp
 Collate:
     'RcppExports.R'
     'ros.R'
+    'gMLE.R'

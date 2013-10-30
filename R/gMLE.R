@@ -12,6 +12,8 @@
 #' @param \dots additional values to pass to/from other functions
 #' @return list containing shape, scale, and rate estimates
 #' @author Eric Bailey
+#' @examples
+#' gmle(rgamma(100, shape = 2, scale = 3))
 
 gmle <- function(x, precision = 1e-5, bias.correct = TRUE, neg = "small", ...) {
   

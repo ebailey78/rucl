@@ -2,7 +2,7 @@
 \alias{ros}
 \title{Regression on Order Statistics}
 \usage{
-  ros(x, d, ...)
+  ros(x, d, na.rm = FALSE, ...)
 }
 \arguments{
   \item{x}{numeric vector containing dataset}
@@ -22,6 +22,6 @@
   lognormal, and gamma distribution assumptions.
 }
 \author{
-  Eric Bailey
+  Eric Bailey and Nathan Byers
 }
 

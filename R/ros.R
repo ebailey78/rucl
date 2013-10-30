@@ -55,7 +55,7 @@ ros <- function(x, d, na.rm = FALSE, ...) {
     
   }
   
-  gp <- gmle(x[d], bias.correct=FALSE) # Estimate gamma parameters
+  gp <- gmle(x[d], bias.correct = FALSE) # Estimate gamma parameters
   
   qn <- qnorm(p)  # Get standard normal values
   qg <- qgamma(p, shape = gp$shape, scale = gp$scale)  # Standard gamma values
@@ -73,7 +73,7 @@ ros <- function(x, d, na.rm = FALSE, ...) {
   pg[pg <= 0] <- 1e-4
   
   # Create and return a dataframe of the results
-  o <- as.data.frame(cbind(x, d, pn, pl, pg))  # Return the data to the original scale
+  o <- as.data.frame(cbind(x, d, pn, pl, pg))  
   colnames(o) <- c("original", "detect", "norm", "ln", "gamma")
   o
   
