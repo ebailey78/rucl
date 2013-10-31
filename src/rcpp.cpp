@@ -79,8 +79,8 @@ NumericVector ple(NumericVector x, LogicalVector d) {
   
 }
 
-double sumcpp(NumericVector x) {
- 
+double meancpp(NumericVector x) {
+  
   double s = 0;
   int n = x.size();
 
@@ -88,108 +88,190 @@ double sumcpp(NumericVector x) {
     s = s + x[i];
   }
 
-  return s;
+  return s/(double)n;
   
 }
 
-double meancpp(NumericVector x) {
+double sd(NumericVector x) {
   
-  return sumcpp(x)/double(x.size());
+  int n = x.size();
+  double m = meancpp(x);
+  double s = 0;
+  
+  for(int i = 0; i < n; i++) s = s + pow(x[i] - m, 2);
+  
+  return sqrt(s / ((double)n - 1));
   
 }
 
 // [[Rcpp::export]]
-double tic(NumericVector x, LogicalVector d, double m) {
+double u3(NumericVector x) {
   
   int n = x.size();
-  NumericVector p = ple(x, d);
-  double ti = sqrt((double)n) * ((p["mean"] - m) / (p["se"] * sqrt(n)));
-
-  return ti;
+  double m = meancpp(x);
+  double u = 0;
+  for(int i = 0; i < n; i++) u = u + pow(x[i] - m, 3);
+    
+  return u / (((double)n - 1) * ((double)n - 2));
   
 }
 
 // [[Rcpp::export]]
-double tiu(NumericVector x, double m) {
+double skew(NumericVector x) {
   
-  int n = x.size();
-  double mi = meancpp(x);
-  double sd = 0;
-  for(int i = 0; i < n; i++) sd = sd + pow(x[i] - mi, 2);
-  double si = sqrt(sd)/((double)n - 1);
+  double n = x.size();
+  double u = u3(x);
+  double s = sd(x);
   
-  double ti = sqrt((double)n) * ((mi - m) / si);
-  
-  return ti;
+  return n * u / pow(s, 3);
   
 }
 
-// [[Rcpp::export]]
-NumericVector BSmean(NumericVector x, int N) {
-
-  NumericVector means(N);
-  int n = x.size();
-
-  double bss;
+double tvalue(NumericVector x, LogicalVector d = NA_LOGICAL, double mean = NA_REAL) {
   
-  for(int i = 0; i < N; i++) {
-
-    bss = 0;
-
-    for(int j = 0; j < n; j++) {
-
-      bss = bss + x[rand() % n];
-
-    }
-
-    means[i] = bss / n;
-
+  int n = x.size();
+  double mi;
+  double si;
+  
+  if(d[0] == NA_LOGICAL) {
+    mi = meancpp(x);
+    double sd = 0;
+    for(int i = 0; i < n; i++) sd = sd + pow(x[i] - mi, 2);
+    si = sqrt(sd);
+  } else {
+    NumericVector p = ple(x, d);
+    mi = p[0];
+    si = p[2];
   }
   
-  return means;
+  double ti = sqrt((double)n) * ((mi - mean) / (si * sqrt((double)n)));
+  
+  return ti;
+  
   
 }
 
-// [[Rcpp::export]]
-NumericVector BSple(NumericVector x, LogicalVector d, int N) {
+double HallW(NumericVector x, double mean) {
+  
+  int n = x.size();
+  int mi = meancpp(x);
+  double sd = 0;
+  for(int i = 0; i < n; i++) sd = sd + pow(x[i] - mi, 2);
+  double si = sqrt(sd) / (double(n) - 1);
+  double wi = (mi - mean) / si;
+  double k3 = skew(x);
+  
+  return wi + k3 * pow(wi,2) / 3 + pow(k3, 2) * pow(wi, 3) / 27 + k3 / (6 * (double)n);  
+  
+}
+
+List bootstrapSample(NumericVector x, LogicalVector d = NA_LOGICAL) {
   
   int n = x.size();
   int r;
+  bool cen = true;
   int ds = 0;
-  NumericVector m;
-  NumericVector z;
-    
   NumericVector bsx(n);
   LogicalVector bsd(n);
+  if(d[0] == NA_LOGICAL) cen = false;
+
+  do {
+
+    ds = 0;
+
+    for(int j = 0; j < n; j++) { // Inner Loop for Bootstrap Samples
+  
+        r = rand() % n; 
+        bsx[j] = x[r];
+        if(cen) {
+          bsd[j] = d[r];
+          if(d[r]) ds++;
+        }
+  
+    }
+  
+  } while (cen && ds <= 3);
+  
+  if(cen) {
+    return List::create(Named("x") = bsx,
+                        Named("d") = bsd);
+  } else {
+    return List::create(Named("x") = bsx,
+                        Named("d") = NA_LOGICAL);
+  }
+  
+}
+
+// [[Rcpp::export]]
+NumericVector bootstrap(NumericVector x, LogicalVector d = NA_LOGICAL, int N = 2000) {
+  
+  bool cen = (d[0] != NA_LOGICAL);
+  double mean;
   NumericVector means(N);
   
+  List bs;
+  
   for(int i = 0; i < N; i++) {
-
-    for(int j = 0; j < n; j++) {
-
-      r = rand() % n;
-      bsx[j] = x[r];
-      bsd[j] = d[r];
-      if(d[r] == true) {
-        ds++;
-      }
-
-    }
-
-    if(ds >= 3) {
-
-      m = ple(bsx, bsd);
-    
-      z = m["mean"];
-    
-      means[i] = m["mean"];
-      
+   
+    bs = bootstrapSample(x, d);
+    if(cen) {
+      mean = ple(bs["x"], bs["d"])[0];
     } else {
-      i--;
+      mean = meancpp(bs["x"]);
     }
-
+   
+    means[i] = mean;
+   
   }
   
   return means;
+  
+}
+
+NumericVector boottvalue(NumericVector x, LogicalVector d = NA_LOGICAL, int N = 2000) {
+  
+  bool cen = (d[0] != NA_LOGICAL);
+  double t;
+  NumericVector tvalues(N);
+  double mean;
+  if(cen) {
+    mean = ple(x,d)[0];
+  } else {
+    mean = meancpp(x);
+  }
+  
+  List bs;
+  
+  for(int i = 0; i < N; i++) {
+   
+    bs = bootstrapSample(x, d);
+    t = tvalue(bs["x"], bs["d"], mean);
+   
+    tvalues[i] = t;
+   
+  }
+  
+  return tvalues;
+  
+}
+
+NumericVector bootHallw(NumericVector x, int N = 2000) {
+  
+  double w;
+  NumericVector wvalues(N);
+  double mean = meancpp(x);
+
+  List bs;
+  
+  for(int i = 0; i < N; i++) {
+   
+    bs = bootstrapSample(x);
+    w = HallW(bs["x"], mean);
+   
+    wvalues[i] = w;
+   
+  }
+  
+  return wvalues;
   
 }
