@@ -98,3 +98,86 @@ b.mvue <- function(m, v, n, con) {
   
 }
 
+### Bootstrap UCL functions ###
+
+# Standard Bootstrap
+b.zboot <- function(B, con) {
+  N <- length(B)
+  m <- sum(B)/N
+  sigma.B <- sqrt((1/(N-1))*sum((B - m)^2))
+  b.zucl(m, sigma.B, con)
+}
+
+# Percentile Bootstrap
+b.pboot <- function(B, con) as.vector(quantile(B, con)[[1]])
+
+# Uncensored Student's-t bootstrap
+u.tboot <- function(x, m, se, con, N, ...) {
+  
+  ti <- function(data, m) {
+    n <- length(data)
+    m.i <- sum(data)/n
+    s.i <- sqrt(sum((data-m.i)^2)/(n-1))
+    sqrt(n)*((m.i - m)/s.i)
+  }
+  
+  B <- u.bootstrap(x, N, ti, m = m)
+  m - as.vector(quantile(B, 1-con)) * se
+  
+}
+
+# Censored Student's-t bootstrap
+c.tboot <- function(x, d, m, se, con, N, ...) {
+  
+  ti <- function(x, d, m) {
+    n <- length(x)
+    p <- ple(x, d)
+    sqrt(n)*((p$mean - m)/(p$se*sqrt(n)))
+  }
+  
+  B <- c.bootstrap(x, d, N, ti, m = m)
+  m - as.vector(quantile(B, 1-con)) * se
+  
+}
+
+# Hall's Bootstrap
+b.hallboot <- function(x, m, n, skew, se, con, N, ...) {
+  
+  Wi <- function(data, m) {
+    n.i <- length(data)
+    m.i <- sum(data)/n.i
+    s.i <- sqrt(sum((data-m.i)^2)/(n.i-1))
+    w.i <- (m.i - m)/s.i
+    k3.i <- skew(data)
+    w.i + k3.i * w.i^2 / 3 + k3.i^2 * w.i^3 / 27 + k3.i / (6*n.i)
+  }
+  
+  m - 3 * ((1 + skew * (as.vector(quantile(u.bootstrap(x, N, Wi, m = m), 1-con))
+                        - skew / (6 * n)))^(1/3) - 1) / skew * (se * sqrt(n))
+  
+}
+
+# Uncensored BCA (bias corrected accelerated) bootstrap
+u.bcaboot <- function(B, x, m, n, con, N, ...) {
+  
+  m.B <- sum(B)/N
+  z.0 <- qnorm(length(B[B < m.B])/N)
+  m.i <- sapply(seq(n), function(i, d, n) sum(d[-i])/n, d = x, n = n-1)
+  a.hat <- sum((m - m.i)^3) / (6 * (sum((m - m.i)^2))^1.5)
+  a.2 <- pnorm(z.0 + ((z.0 + qnorm(con)) / (1 - a.hat*(z.0 + qnorm(con)))))
+  as.vector(quantile(B, a.2)[[1]])
+  
+}
+
+# Censored BCA (bias corrected accelerated) bootstrap
+c.bcaboot <- function(B, x, d, m, n, con, N, ...) {
+  
+  m.B <- sum(B)/N
+  z.0 <- qnorm(length(B[B < m.B])/N)
+  m.i <- sapply(seq(n), function(i, x, d) ple.lite(x[-i], d[-i]), x = x, d = d)
+  a.hat <- sum((m - m.i)^3) / (6 * (sum((m - m.i)^2))^1.5)
+  qcon <- qnorm(con)
+  a.2 <- pnorm(z.0 + (z.0 + qcon) / (1 - a.hat*(z.0 + qcon)))
+  as.vector(quantile(B, a.2)[[1]])
+  
+}
