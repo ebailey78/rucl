@@ -14,3 +14,5 @@ Collate:
     'RcppExports.R'
     'ros.R'
     'gMLE.R'
+    'pkg-internal.R'
+    'pkg-internal-ucls.R'

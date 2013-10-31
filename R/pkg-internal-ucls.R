@@ -174,7 +174,7 @@ c.bcaboot <- function(B, x, d, m, n, con, N, ...) {
   
   m.B <- sum(B)/N
   z.0 <- qnorm(length(B[B < m.B])/N)
-  m.i <- sapply(seq(n), function(i, x, d) ple.lite(x[-i], d[-i]), x = x, d = d)
+  m.i <- sapply(seq(n), function(i, x, d) ple(x[-i], d[-i]), x = x, d = d)
   a.hat <- sum((m - m.i)^3) / (6 * (sum((m - m.i)^2))^1.5)
   qcon <- qnorm(con)
   a.2 <- pnorm(z.0 + (z.0 + qcon) / (1 - a.hat*(z.0 + qcon)))

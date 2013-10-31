@@ -4,7 +4,7 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-Rcpp::List ple(NumericVector x, LogicalVector d) {
+NumericVector ple(NumericVector x, LogicalVector d) {
 
   std::vector<double> v;
 
@@ -73,15 +73,60 @@ Rcpp::List ple(NumericVector x, LogicalVector d) {
   var = var * ((double)vn / ((double)vn-1));
   double se = sqrt(var);
   
-  return Rcpp::List::create(Rcpp::Named("mean") = mean,
-                            Rcpp::Named("var") = var,
-                            Rcpp::Named("se") = se);
+  return Rcpp::NumericVector::create(Rcpp::Named("mean") = mean,
+                                     Rcpp::Named("var") = var,
+                                     Rcpp::Named("se") = se);
+  
+}
+
+double sumcpp(NumericVector x) {
+ 
+  double s = 0;
+  int n = x.size();
+
+  for(int i = 0; i < n; i++) { 
+    s = s + x[i];
+  }
+
+  return s;
+  
+}
+
+double meancpp(NumericVector x) {
+  
+  return sumcpp(x)/double(x.size());
+  
+}
+
+// [[Rcpp::export]]
+double tic(NumericVector x, LogicalVector d, double m) {
+  
+  int n = x.size();
+  NumericVector p = ple(x, d);
+  double ti = sqrt((double)n) * ((p["mean"] - m) / (p["se"] * sqrt(n)));
+
+  return ti;
+  
+}
+
+// [[Rcpp::export]]
+double tiu(NumericVector x, double m) {
+  
+  int n = x.size();
+  double mi = meancpp(x);
+  double sd = 0;
+  for(int i = 0; i < n; i++) sd = sd + pow(x[i] - mi, 2);
+  double si = sqrt(sd)/((double)n - 1);
+  
+  double ti = sqrt((double)n) * ((mi - m) / si);
+  
+  return ti;
   
 }
 
 // [[Rcpp::export]]
 NumericVector BSmean(NumericVector x, int N) {
-  
+
   NumericVector means(N);
   int n = x.size();
 
@@ -91,7 +136,7 @@ NumericVector BSmean(NumericVector x, int N) {
 
     bss = 0;
 
-    for(int j = 0; j < x.size(); j++) {
+    for(int j = 0; j < n; j++) {
 
       bss = bss + x[rand() % n];
 
@@ -108,27 +153,40 @@ NumericVector BSmean(NumericVector x, int N) {
 // [[Rcpp::export]]
 NumericVector BSple(NumericVector x, LogicalVector d, int N) {
   
-  NumericVector means(N);
   int n = x.size();
   int r;
+  int ds = 0;
   NumericVector m;
-  
+  NumericVector z;
+    
   NumericVector bsx(n);
   LogicalVector bsd(n);
+  NumericVector means(N);
   
   for(int i = 0; i < N; i++) {
 
-    for(int j = 0; j < x.size(); j++) {
+    for(int j = 0; j < n; j++) {
 
       r = rand() % n;
       bsx[j] = x[r];
       bsd[j] = d[r];
+      if(d[r] == true) {
+        ds++;
+      }
 
     }
 
-    m = ple(bsx, bsd)[1];
-  
-    means[i] = m[1];
+    if(ds >= 3) {
+
+      m = ple(bsx, bsd);
+    
+      z = m["mean"];
+    
+      means[i] = m["mean"];
+      
+    } else {
+      i--;
+    }
 
   }
   

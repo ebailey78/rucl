@@ -3,7 +3,7 @@
 \title{Maximum Likelihood Estimates of gamma Distribution Parameters}
 \usage{
   gmle(x, precision = 1e-05, bias.correct = TRUE,
-    neg = "small", ...)
+    na.rm = FALSE, neg = "small", ...)
 }
 \arguments{
   \item{x}{numeric vector containing dataset}

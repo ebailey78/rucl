@@ -5,14 +5,49 @@
 
 using namespace Rcpp;
 
-// rcpp_hello_world
-List rcpp_hello_world();
-RcppExport SEXP rucl_rcpp_hello_world() {
+// ple
+Rcpp::List ple(NumericVector x, LogicalVector d);
+RcppExport SEXP rucl_ple(SEXP xSEXP, SEXP dSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        List __result = rcpp_hello_world();
+        Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP );
+        Rcpp::traits::input_parameter< LogicalVector >::type d(dSEXP );
+        Rcpp::List __result = ple(x, d);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// BSmean
+NumericVector BSmean(NumericVector x, int N);
+RcppExport SEXP rucl_BSmean(SEXP xSEXP, SEXP NSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP );
+        Rcpp::traits::input_parameter< int >::type N(NSEXP );
+        NumericVector __result = BSmean(x, N);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// BSple
+NumericVector BSple(NumericVector x, LogicalVector d, int N);
+RcppExport SEXP rucl_BSple(SEXP xSEXP, SEXP dSEXP, SEXP NSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP );
+        Rcpp::traits::input_parameter< LogicalVector >::type d(dSEXP );
+        Rcpp::traits::input_parameter< int >::type N(NSEXP );
+        NumericVector __result = BSple(x, d, N);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
