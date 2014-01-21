@@ -114,14 +114,7 @@ b.pboot <- function(B, con) as.vector(quantile(B, con)[[1]])
 # Uncensored Student's-t bootstrap
 u.tboot <- function(x, m, se, con, N, ...) {
   
-  ti <- function(data, m) {
-    n <- length(data)
-    m.i <- sum(data)/n
-    s.i <- sqrt(sum((data-m.i)^2)/(n-1))
-    sqrt(n)*((m.i - m)/s.i)
-  }
-  
-  B <- u.bootstrap(x, N, ti, m = m)
+  B <- boottvalue(x, N)
   m - as.vector(quantile(B, 1-con)) * se
   
 }
@@ -129,13 +122,7 @@ u.tboot <- function(x, m, se, con, N, ...) {
 # Censored Student's-t bootstrap
 c.tboot <- function(x, d, m, se, con, N, ...) {
   
-  ti <- function(x, d, m) {
-    n <- length(x)
-    p <- ple(x, d)
-    sqrt(n)*((p$mean - m)/(p$se*sqrt(n)))
-  }
-  
-  B <- c.bootstrap(x, d, N, ti, m = m)
+  B <- boottvalue(x, d, N)
   m - as.vector(quantile(B, 1-con)) * se
   
 }
@@ -143,16 +130,7 @@ c.tboot <- function(x, d, m, se, con, N, ...) {
 # Hall's Bootstrap
 b.hallboot <- function(x, m, n, skew, se, con, N, ...) {
   
-  Wi <- function(data, m) {
-    n.i <- length(data)
-    m.i <- sum(data)/n.i
-    s.i <- sqrt(sum((data-m.i)^2)/(n.i-1))
-    w.i <- (m.i - m)/s.i
-    k3.i <- skew(data)
-    w.i + k3.i * w.i^2 / 3 + k3.i^2 * w.i^3 / 27 + k3.i / (6*n.i)
-  }
-  
-  m - 3 * ((1 + skew * (as.vector(quantile(u.bootstrap(x, N, Wi, m = m), 1-con))
+  m - 3 * ((1 + skew * (as.vector(quantile(bootHallw(x, N), 1-con))
                         - skew / (6 * n)))^(1/3) - 1) / skew * (se * sqrt(n))
   
 }

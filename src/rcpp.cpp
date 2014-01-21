@@ -228,6 +228,7 @@ NumericVector bootstrap(NumericVector x, LogicalVector d = NA_LOGICAL, int N = 2
   
 }
 
+// [[Rcpp::export]]
 NumericVector boottvalue(NumericVector x, LogicalVector d = NA_LOGICAL, int N = 2000) {
   
   bool cen = (d[0] != NA_LOGICAL);
@@ -255,6 +256,7 @@ NumericVector boottvalue(NumericVector x, LogicalVector d = NA_LOGICAL, int N = 
   
 }
 
+// [[Rcpp::export]]
 NumericVector bootHallw(NumericVector x, int N = 2000) {
   
   double w;
