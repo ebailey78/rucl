@@ -1,4 +1,4 @@
-Package: rucl2
+Package: rucl
 Version: 0.50
 Date: 2013-09-23
 Title: Upper Confidence Limit (UCL) functions for R
