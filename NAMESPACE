@@ -1,0 +1,14 @@
+export( 
+plot.rucl,
+boxplot.rucl, 
+hist.rucl, 
+barplot.rucl, 
+qqnorm.rucl, 
+gamma.mle, 
+summary.rucl, 
+print.rucl, 
+skew,
+ucl, 
+ros, 
+ple.lite, 
+ple)

@@ -1,3 +1,17 @@
+data(uu.picks, envir=environment())
+data(cu.picks, envir=environment())
+data(adja, envir=environment())
+data(h95, envir=environment())
+
+#Unbiased Estimate of the third central moment (Kleijnen, Kloppenburg, and Meeuwsen 1986)
+u3 <- function(x) {
+  n <- length(x)
+  m <- sum(x)/n
+  sum((x - m)^3) / ((n - 1) * (n - 2))
+}
+
+skew <- function(x) length(x) * u3(x) / sd(x)^3
+
 # Takes an mns object and uses it to interpolate values using natural splines
 mns.interpolate <- function(mns, new.x) {
   

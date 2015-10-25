@@ -1,1 +1,0 @@
-* ProUCL uses non-bias-corrected MLE estimates for gamma ROS calculations... why?
